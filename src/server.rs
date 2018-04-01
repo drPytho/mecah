@@ -1,5 +1,5 @@
-extern crate mecah;
 extern crate argparse;
+extern crate mecah;
 
 use mecah::database::storage::Storage;
 use mecah::tcp::server;

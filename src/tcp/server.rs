@@ -1,11 +1,10 @@
 use database::storage::Storage;
-use std::sync::{Arc, Mutex};
 use protocol::driver;
+use std::sync::{Arc, Mutex};
 
 use tokio;
 use tokio::net::TcpListener;
 use tokio::prelude::*;
-
 
 /// This is the main TCP server structure
 ///
@@ -34,7 +33,7 @@ impl Server {
         Server {
             data: Arc::new(Mutex::new(storage)),
             host: host,
-            port: port
+            port: port,
         }
     }
 
@@ -49,15 +48,17 @@ impl Server {
         let addr = format!("{}:{}", self.host, self.port).parse().unwrap();
         let listener = TcpListener::bind(&addr).unwrap();
 
-        let server = listener.incoming().for_each(move |socket| {
-            println!("Accepted socket; addr={:?}", socket.peer_addr().unwrap());
-            let data = self.data.clone();
-            driver::handle_conn(socket, data);
-            Ok(())
-        }).map_err(|err| {
-            println!("Accept error = {:?}", err);
-        });
-
+        let server = listener
+            .incoming()
+            .for_each(move |socket| {
+                println!("Accepted socket; addr={:?}", socket.peer_addr().unwrap());
+                let data = self.data.clone();
+                driver::handle_conn(socket, data);
+                Ok(())
+            })
+            .map_err(|err| {
+                println!("Accept error = {:?}", err);
+            });
 
         println!("Starting server on {:?}", addr);
         tokio::run(server);

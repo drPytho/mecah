@@ -1,4 +1,4 @@
-use bincode::{serialize, deserialize};
+use bincode::{deserialize, serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum OpCode {
@@ -48,7 +48,7 @@ mod tests {
         let request = Request {
             op: OpCode::Set,
             key: "SomeKey".to_string(),
-            val: "Value".to_string()
+            val: "Value".to_string(),
         };
         let encoded: Vec<u8> = serialize(&request).unwrap();
 

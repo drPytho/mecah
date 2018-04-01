@@ -8,12 +8,12 @@ use tokio::prelude::*;
 
 use bincode::{deserialize_from, serialize};
 
-use bytes::{BytesMut, IntoBuf, Buf, BufMut};
+use bytes::{Buf, BufMut, BytesMut, IntoBuf};
 
 use futures::Future;
 
 use database::storage::{Storage, StorageError};
-use protocol::protocol::{Message, Request, Response, OpCode};
+use protocol::protocol::{Message, OpCode, Request, Response};
 
 struct MessageStream {
     socket: TcpStream,
@@ -84,14 +84,16 @@ impl Stream for MessageStream {
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         // Fill up the buffer with all available data.
-        let sock_closed = self.poll_read_to_buf().expect("Should not be an error").is_ready();
+        let sock_closed = self.poll_read_to_buf()
+            .expect("Should not be an error")
+            .is_ready();
 
         let mut rdr = self.rd.clone().into_buf().reader();
         return match deserialize_from(&mut rdr) {
             Ok(m) => {
-                self.rd.advance(rdr.get_ref().position() as usize); 
+                self.rd.advance(rdr.get_ref().position() as usize);
                 Ok(Async::Ready(Some(m)))
-            },
+            }
             Err(_) => {
                 if sock_closed {
                     Ok(Async::Ready(None))
@@ -99,7 +101,7 @@ impl Stream for MessageStream {
                     Ok(Async::NotReady)
                 }
             }
-        }
+        };
     }
 }
 
@@ -114,11 +116,7 @@ impl Client {
         // Get the client socket address
         let addr = ms.socket.peer_addr().unwrap();
 
-        Client {
-            ms,
-            data,
-            addr
-        }
+        Client { ms, data, addr }
     }
 }
 
@@ -140,9 +138,8 @@ impl Future for Client {
                 self.ms.write_response(res);
                 match self.ms.poll_flush_buf() {
                     Err(_) => return Err(()),
-                    _ => {},
+                    _ => {}
                 }
-                
             } else {
                 // EOF was reached. The remote client has disconnected.
                 // There is nothing more to do.
@@ -173,9 +170,9 @@ pub fn do_request(req: Request, data: Arc<Mutex<Storage>>) -> Response {
             let val = req.val;
             match data.set(key, val) {
                 Ok(_) => Response::Success,
-                Err(_) => Response::Failed("Internal Error".to_string())
+                Err(_) => Response::Failed("Internal Error".to_string()),
             }
-        },
+        }
         OpCode::Get => {
             let key = req.key;
             match data.get(key) {
@@ -183,15 +180,14 @@ pub fn do_request(req: Request, data: Arc<Mutex<Storage>>) -> Response {
                 Err(StorageError::KeyNotFound) => Response::Failed("Key not found".to_string()),
                 Err(_) => Response::Failed("Internal Error".to_string()),
             }
-        },
+        }
         OpCode::Del => {
             let key = req.key;
             match data.del(key) {
                 Ok(_) => Response::Success,
                 Err(StorageError::KeyNotFound) => Response::Failed("Key not found".to_string()),
-                Err(_) => Response::Failed("Internal Error".to_string())
+                Err(_) => Response::Failed("Internal Error".to_string()),
             }
-
         }
     }
 }

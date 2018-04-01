@@ -1,20 +1,19 @@
 use std::collections::HashMap;
 use std::fmt;
 
-
 /// This enum is just a easy to read description
 /// of possible errors ocurred when consulting
 /// the database
 pub enum StorageError {
     KeyNotFound,
-    InternalError
+    InternalError,
 }
 
 impl fmt::Debug for StorageError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let message = match *self {
             StorageError::KeyNotFound => "Key not found",
-            StorageError::InternalError => "Internal error"
+            StorageError::InternalError => "Internal error",
         };
 
         write!(f, "{}", message)
@@ -33,7 +32,6 @@ pub struct Storage {
 // Let's implement Storage by adding all Redis
 // commands we want to support
 impl Storage {
-
     /// Creates a new storage instance
     ///
     /// This is a static method (not attached to an instance)
@@ -48,12 +46,14 @@ impl Storage {
     /// let storage = Storage::new();
     /// ```
     pub fn new() -> Storage {
-        Storage { data: HashMap::new() }
+        Storage {
+            data: HashMap::new(),
+        }
     }
 
     pub fn get(&self, key: String) -> Result<&String, StorageError> {
         if !self.data.contains_key(&key) {
-            return Err(StorageError::KeyNotFound)
+            return Err(StorageError::KeyNotFound);
         }
 
         let data = self.data.get(&key).unwrap();
@@ -78,7 +78,7 @@ impl Storage {
 
     pub fn del(&mut self, key: String) -> Result<bool, StorageError> {
         if !self.data.contains_key(&key) {
-            return Err(StorageError::KeyNotFound)
+            return Err(StorageError::KeyNotFound);
         }
 
         self.data.remove(&key);
@@ -99,8 +99,14 @@ mod tests {
     fn test_database_set_get() {
         let mut storage = Storage::new();
 
-        assert_eq!(storage.set("test".to_string(), "test".to_string()).unwrap(), true);
-        assert_eq!(storage.get("test".to_string()).unwrap().to_string(), "test".to_string());
+        assert_eq!(
+            storage.set("test".to_string(), "test".to_string()).unwrap(),
+            true
+        );
+        assert_eq!(
+            storage.get("test".to_string()).unwrap().to_string(),
+            "test".to_string()
+        );
     }
 
     #[test]
@@ -114,7 +120,10 @@ mod tests {
     fn test_exists() {
         let mut storage = Storage::new();
 
-        assert_eq!(storage.set("test".to_string(), "test".to_string()).unwrap(), true);
+        assert_eq!(
+            storage.set("test".to_string(), "test".to_string()).unwrap(),
+            true
+        );
         assert_eq!(storage.exists("test".to_string()).unwrap(), true);
     }
 
@@ -122,10 +131,24 @@ mod tests {
     fn test_set_overwrite_key() {
         let mut storage = Storage::new();
 
-        assert_eq!(storage.set("test".to_string(), "test".to_string()).unwrap(), true);
-        assert_eq!(storage.get("test".to_string()).unwrap().to_string(), "test".to_string());
-        assert_eq!(storage.set("test".to_string(), "test2".to_string()).unwrap(), true);
-        assert_eq!(storage.get("test".to_string()).unwrap().to_string(), "test2".to_string());
+        assert_eq!(
+            storage.set("test".to_string(), "test".to_string()).unwrap(),
+            true
+        );
+        assert_eq!(
+            storage.get("test".to_string()).unwrap().to_string(),
+            "test".to_string()
+        );
+        assert_eq!(
+            storage
+                .set("test".to_string(), "test2".to_string())
+                .unwrap(),
+            true
+        );
+        assert_eq!(
+            storage.get("test".to_string()).unwrap().to_string(),
+            "test2".to_string()
+        );
         assert_eq!(storage.count_keys(), 1);
     }
 
@@ -133,8 +156,14 @@ mod tests {
     fn test_delete_key() {
         let mut storage = Storage::new();
 
-        assert_eq!(storage.set("test".to_string(), "test".to_string()).unwrap(), true);
-        assert_eq!(storage.get("test".to_string()).unwrap().to_string(), "test".to_string());
+        assert_eq!(
+            storage.set("test".to_string(), "test".to_string()).unwrap(),
+            true
+        );
+        assert_eq!(
+            storage.get("test".to_string()).unwrap().to_string(),
+            "test".to_string()
+        );
         assert_eq!(storage.del("test".to_string()).unwrap(), true);
         assert_eq!(storage.get("test".to_string()).is_err(), true);
         assert_eq!(storage.count_keys(), 0);
@@ -144,8 +173,16 @@ mod tests {
     fn test_count_keys() {
         let mut storage = Storage::new();
 
-        assert_eq!(storage.set("test".to_string(), "test".to_string()).unwrap(), true);
-        assert_eq!(storage.set("test2".to_string(), "test2".to_string()).unwrap(), true);
+        assert_eq!(
+            storage.set("test".to_string(), "test".to_string()).unwrap(),
+            true
+        );
+        assert_eq!(
+            storage
+                .set("test2".to_string(), "test2".to_string())
+                .unwrap(),
+            true
+        );
 
         assert_eq!(storage.count_keys(), 2);
     }
