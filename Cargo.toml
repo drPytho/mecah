@@ -1,0 +1,25 @@
+[package]
+name = "mecah"
+version = "0.0.1"
+authors = ["Filip Lindvall <filip@drpytho.com>"]
+
+[lib]
+name = "mecah"
+path = "src/lib.rs"
+
+[[bin]]
+name = "mecah-server"
+path = "src/server.rs"
+
+[[bin]]
+name = "mecah-client"
+path = "src/client.rs"
+
+[dependencies]
+tokio = "0.1"
+futures = "0.1"
+argparse = "*"
+bincode = "1.0.0"
+serde = "1.0.14"
+serde_derive = "1.0.14"
+bytes = "0.4"
