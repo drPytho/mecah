@@ -3,10 +3,10 @@ extern crate bytes;
 extern crate bincode;
 
 use std::io;
-use std::io::{Read,Write};
+use std::io::Write;
 use std::net::TcpStream;
 use std::io::BufReader;
-//use bytes::{BytesMut, IntoBuf, Buf};
+
 use bincode::deserialize_from;
 use mecah::*;
 use mecah::protocol::protocol::{Message, OpCode, Request, mangle};
@@ -38,7 +38,12 @@ fn cli_loop(host: &String, port: &String, stream: &mut TcpStream) {
 	print!("{}:{}> ", host, port);
 	io::stdout().flush().unwrap();
 
-	let input = util::io::read_line();
+	let input = util::io::read_line().trim().to_string();
+
+    if input == "" {
+        println!("");
+        return 
+    }
 
     let message = parse_command(&input);
     if message.is_err() {
